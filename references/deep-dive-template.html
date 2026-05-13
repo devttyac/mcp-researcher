@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCP Deep Dive — {{CATEGORY}} — {{DATE}}</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --text: #1e293b;
+    --muted: #64748b;
+    --accent: #6366f1;
+    --radius: 8px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #334155;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .header {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .header h1 { font-size: 1.75rem; font-weight: 700; }
+  .mode-badge {
+    background: #0ea5e9;
+    color: #fff;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .header-meta { color: var(--muted); font-size: 0.875rem; margin-left: auto; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  /* Executive summary */
+  .exec-card { border-left: 4px solid var(--accent); }
+  .exec-card p { font-size: 0.9rem; line-height: 1.7; }
+
+  /* Score badge */
+  .score-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 62px; height: 62px; border-radius: 50%;
+    font-size: 1.1rem; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .score-sm { display: inline-block; padding: 1px 7px; border-radius: 4px; font-size: 0.73rem; font-weight: 700; color: #fff; }
+  .green  { background: #22c55e; }
+  .amber  { background: #f59e0b; }
+  .orange { background: #f97316; }
+  .red    { background: #ef4444; }
+
+  /* Stats bar */
+  .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; text-align: center; }
+  .stat-box .val { font-size: 1.9rem; font-weight: 700; color: var(--accent); line-height: 1; }
+  .stat-box .lbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 4px; }
+
+  /* Charts */
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  @media (max-width: 740px) { .charts-row { grid-template-columns: 1fr; } }
+
+  /* Table */
+  .filter-wrap { margin-bottom: 12px; }
+  .filter-wrap input {
+    width: 100%; padding: 8px 12px;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--bg); color: var(--text); font-size: 0.9rem;
+  }
+  .filter-wrap input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th {
+    background: var(--bg); border-bottom: 2px solid var(--border);
+    padding: 9px 12px; text-align: left;
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted);
+    cursor: pointer; user-select: none; white-space: nowrap;
+  }
+  th:hover { color: var(--accent); }
+  th.sorted { color: var(--accent); }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(99,102,241,0.03); }
+  td a { color: var(--accent); text-decoration: none; }
+  td a:hover { text-decoration: underline; }
+  .lang-badge { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; font-size: 0.7rem; color: var(--muted); white-space: nowrap; }
+  .cx-badge { border-radius: 4px; padding: 1px 6px; font-size: 0.7rem; font-weight: 600; }
+  .cx-low  { background: rgba(34,197,94,0.12);  color: #16a34a; }
+  .cx-med  { background: rgba(245,158,11,0.12); color: #d97706; }
+  .cx-high { background: rgba(249,115,22,0.12); color: #ea580c; }
+
+  /* Deep-dive cards */
+  .dd-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+  .dd-card-hdr { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; }
+  .dd-card-title { flex: 1; min-width: 200px; }
+  .dd-card-title h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 2px; }
+  .dd-card-title h3 a { color: var(--accent); text-decoration: none; }
+  .dd-card-title h3 a:hover { text-decoration: underline; }
+  .dd-card-meta { color: var(--muted); font-size: 0.8rem; }
+  .dd-desc { font-size: 0.875rem; margin-bottom: 12px; }
+  .dd-stats-row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 12px; font-size: 0.8rem; color: var(--muted); }
+  .dd-stats-row strong { color: var(--text); }
+  .dd-section { margin-bottom: 12px; }
+  .dd-section-lbl { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 6px; }
+  .dd-section-body { font-size: 0.855rem; line-height: 1.6; }
+  .tools-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tool-chip { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; font-size: 0.72rem; font-family: ui-monospace, 'Cascadia Code', monospace; color: var(--muted); }
+  .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; }
+  @media (max-width: 560px) { .pros-cons { grid-template-columns: 1fr; } }
+  .pros { border-left: 3px solid #22c55e; padding-left: 12px; }
+  .cons { border-left: 3px solid #ef4444; padding-left: 12px; }
+  .pros .pc-lbl { color: #16a34a; }
+  .cons .pc-lbl { color: #dc2626; }
+  .pc-lbl { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .pc-body { font-size: 0.845rem; color: var(--muted); }
+
+  /* Implementation map */
+  .combo { border-left: 3px solid var(--accent); padding-left: 14px; margin-bottom: 16px; }
+  .combo:last-child { margin-bottom: 0; }
+  .combo h3 { font-size: 0.92rem; font-weight: 600; margin-bottom: 4px; }
+  .combo p { font-size: 0.845rem; color: var(--muted); }
+
+  /* Recommendation */
+  .rec-card { border-left: 4px solid #22c55e; }
+  .rec-card p { font-size: 0.9rem; line-height: 1.7; }
+
+  /* Source note */
+  .src-note { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; font-size: 0.78rem; color: var(--muted); margin-bottom: 20px; }
+  .src-note strong { color: var(--text); }
+
+  canvas { display: block; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>{{CATEGORY}} Deep Dive</h1>
+  <span class="mode-badge">Deep Dive</span>
+  <div class="header-meta">{{DATE}} &nbsp;·&nbsp; {{SERVER_COUNT}} servers analysed</div>
+</div>
+
+<div class="src-note">
+  {{SOURCING_NOTE}}
+</div>
+
+<!-- Executive summary -->
+<div class="card exec-card">
+  <div class="card-label">Executive Summary</div>
+  {{EXEC_SUMMARY}}
+</div>
+
+<!-- Stats bar -->
+<div class="stats-bar">
+  <div class="stat-box"><div class="val">{{STAT_TOTAL}}</div><div class="lbl">Total Servers</div></div>
+  <div class="stat-box"><div class="val">{{STAT_AVG_SCORE}}</div><div class="lbl">Avg Quality Score</div></div>
+  <div class="stat-box"><div class="val">{{STAT_ABANDONMENT}}</div><div class="lbl">Abandonment Rate</div></div>
+  <div class="stat-box"><div class="val">{{STAT_MEDIAN_STARS}}</div><div class="lbl">Median Stars</div></div>
+  <div class="stat-box"><div class="val">{{STAT_MEDIAN_DAYS}}d</div><div class="lbl">Median Days Since Commit</div></div>
+  <div class="stat-box"><div class="val">{{STAT_SOURCES}}</div><div class="lbl">Sources Checked</div></div>
+</div>
+
+<!-- Charts -->
+<div class="charts-row">
+  <div class="card" style="margin-bottom:0">
+    <div class="card-label">Sub-category Breakdown</div>
+    <canvas id="pieChart"></canvas>
+  </div>
+  <div class="card" style="margin-bottom:0">
+    <div class="card-label">Quality Matrix — Stars vs Recency</div>
+    <canvas id="scatterChart"></canvas>
+  </div>
+</div>
+<div style="height:20px"></div>
+
+<!-- Full inventory table -->
+<div class="card">
+  <div class="card-label">Full Inventory ({{SERVER_COUNT}} servers)</div>
+  <div class="filter-wrap">
+    <input type="text" id="filterInput" placeholder="Filter by name or description…" oninput="filterTable()">
+  </div>
+  <div style="overflow-x:auto">
+    <table id="srvTable">
+      <thead>
+        <tr>
+          <th onclick="sortTable(0)">Name ↕</th>
+          <th onclick="sortTable(1)">Sub-category ↕</th>
+          <th onclick="sortTable(2)" class="sorted">Score ↕</th>
+          <th onclick="sortTable(3)">Stars ↕</th>
+          <th onclick="sortTable(4)">Last Commit ↕</th>
+          <th onclick="sortTable(5)">Installs ↕</th>
+          <th onclick="sortTable(6)">Lang ↕</th>
+          <th onclick="sortTable(7)">Complexity ↕</th>
+        </tr>
+      </thead>
+      <tbody id="tBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Per-server deep-dive cards (top 5–7) -->
+<div class="card-label" style="margin-bottom:12px">Top Server Deep Dives</div>
+{{DEEP_DIVE_CARDS_HTML}}
+
+<!-- Implementation map -->
+<div class="card">
+  <div class="card-label">Implementation Map — Servers That Compose Well Together</div>
+  {{IMPL_MAP_HTML}}
+</div>
+
+<!-- Recommendation -->
+<div class="card rec-card">
+  <div class="card-label">Recommendation</div>
+  {{RECOMMENDATION_HTML}}
+</div>
+
+<script>
+const SERVERS = {{SERVERS_JSON}};
+// Each object: { name, url, subcat, score, stars, commit, installs, complexity, lang, src, desc }
+// complexity: "Low" | "Medium" | "High"
+// installs: integer (0 if unavailable)
+// src: source label string
+
+const SUBCATS = {{SUBCATS_JSON}};
+// Array of { label, count } for the pie chart
+
+function scoreClass(s) {
+  if (s >= 80) return 'green';
+  if (s >= 60) return 'amber';
+  if (s >= 40) return 'orange';
+  return 'red';
+}
+
+function cxClass(c) {
+  if (c === 'Low') return 'cx-low';
+  if (c === 'High') return 'cx-high';
+  return 'cx-med';
+}
+
+/* ── TABLE ── */
+let sortCol = 2, sortAsc = false;
+
+function renderRows(data) {
+  const tbody = document.getElementById('tBody');
+  const rows = [];
+  data.forEach(s => {
+    const inst = s.installs > 0 ? s.installs.toLocaleString() : '—';
+    rows.push(
+      '<tr data-k="' + s.name.toLowerCase() + ' ' + s.desc + '">' +
+      '<td><a href="' + s.url + '" target="_blank">' + s.name + '</a>' +
+      (s.abandoned ? ' <span style="color:#f97316;font-size:0.72rem">⚠ Abandoned</span>' : '') + '</td>' +
+      '<td>' + s.subcat + '</td>' +
+      '<td><span class="score-sm ' + scoreClass(s.score) + '">' + s.score + '/100</span></td>' +
+      '<td>⭐ ' + s.stars + '</td>' +
+      '<td>' + s.commit + '</td>' +
+      '<td>' + inst + '</td>' +
+      '<td><span class="lang-badge">' + s.lang + '</span></td>' +
+      '<td><span class="cx-badge ' + cxClass(s.complexity) + '">' + s.complexity + '</span></td>' +
+      '</tr>'
+    );
+  });
+  tbody.innerHTML = rows.join('');
+}
+
+function sortTable(col) {
+  document.querySelectorAll('#srvTable th').forEach((th,i) => th.classList.toggle('sorted', i===col));
+  if (sortCol === col) sortAsc = !sortAsc;
+  else { sortCol = col; sortAsc = (col !== 2 && col !== 3 && col !== 5); }
+  const keys = ['name','subcat','score','stars','commit','installs','lang','complexity'];
+  const sorted = [...SERVERS].sort((a,b) => {
+    const va = a[keys[col]], vb = b[keys[col]];
+    if (typeof va === 'number') return sortAsc ? va-vb : vb-va;
+    return sortAsc ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
+  });
+  renderRows(sorted);
+  filterTable();
+}
+
+function filterTable() {
+  const q = document.getElementById('filterInput').value.toLowerCase();
+  document.querySelectorAll('#tBody tr').forEach(tr => {
+    tr.style.display = tr.dataset.k.includes(q) ? '' : 'none';
+  });
+}
+
+sortTable(2);
+
+/* ── CHARTS ── */
+function isDark() { return window.matchMedia('(prefers-color-scheme: dark)').matches; }
+function textColor() { return isDark() ? '#94a3b8' : '#64748b'; }
+function gridColor() { return isDark() ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'; }
+
+function setupCanvas(id, h) {
+  const c = document.getElementById(id);
+  const dpr = window.devicePixelRatio || 1;
+  const W = c.parentElement.clientWidth - 40;
+  c.width  = W * dpr; c.height = h * dpr;
+  c.style.width = W+'px'; c.style.height = h+'px';
+  const ctx = c.getContext('2d');
+  ctx.scale(dpr, dpr);
+  return [ctx, W, h];
+}
+
+const PALETTE = ['#6366f1','#0ea5e9','#22c55e','#f59e0b','#f97316','#ec4899','#8b5cf6','#14b8a6'];
+
+function drawPieChart() {
+  const [ctx, W, H] = setupCanvas('pieChart', 260);
+  const total = SUBCATS.reduce((s, c) => s + c.count, 0);
+  const cx = W / 2, cy = (H - 40) / 2 + 8;
+  const r = Math.min(cx - 10, cy - 10);
+  let angle = -Math.PI / 2;
+
+  SUBCATS.forEach((c, i) => {
+    const slice = (c.count / total) * Math.PI * 2;
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, angle, angle + slice);
+    ctx.closePath();
+    ctx.fillStyle = PALETTE[i % PALETTE.length]; ctx.fill();
+    ctx.strokeStyle = isDark() ? '#0f172a' : '#fff'; ctx.lineWidth = 2; ctx.stroke();
+    angle += slice;
+  });
+
+  // Legend at bottom
+  const perRow = 3, lh = 16, lx0 = 8;
+  const totalRows = Math.ceil(SUBCATS.length / perRow);
+  const ly0 = H - totalRows * lh - 4;
+  ctx.font = '10px -apple-system,system-ui,sans-serif';
+  SUBCATS.forEach((c, i) => {
+    const col = i % perRow, row = Math.floor(i / perRow);
+    const x = lx0 + col * (W / perRow), y = ly0 + row * lh;
+    ctx.fillStyle = PALETTE[i % PALETTE.length]; ctx.fillRect(x, y, 8, 8);
+    ctx.fillStyle = textColor(); ctx.textAlign = 'left';
+    const label = c.label.length > 13 ? c.label.slice(0, 12) + '…' : c.label;
+    ctx.fillText(label + ' (' + c.count + ')', x + 11, y + 8);
+  });
+}
+
+function drawScatterChart() {
+  const [ctx, W, H] = setupCanvas('scatterChart', 260);
+  const pad = {t:20, r:20, b:30, l:36};
+  const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+  const maxStars = Math.max(...SERVERS.map(s => s.stars), 1);
+  const daysArr = SERVERS.map(s => Math.round((Date.now() - new Date(s.commit)) / 86400000));
+  const maxDays = Math.max(...daysArr, 1);
+  const maxInst = Math.max(...SERVERS.map(s => s.installs), 1);
+
+  // Grid
+  ctx.strokeStyle = gridColor(); ctx.lineWidth = 1;
+  [0, 0.5, 1].forEach(t => {
+    const y = pad.t + ch * t, x = pad.l + cw * t;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cw, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t + ch); ctx.stroke();
+    ctx.fillStyle = textColor();
+    ctx.font = '10px -apple-system,system-ui,sans-serif';
+    ctx.textAlign = 'right'; ctx.fillText(Math.round(maxDays * t) + 'd', pad.l - 3, y + 3);
+    ctx.textAlign = 'center'; ctx.fillText(Math.round(maxStars * t / 100) / 10 + 'k', x, pad.t + ch + 14);
+  });
+
+  // Axis labels
+  ctx.fillStyle = textColor(); ctx.font = '10px -apple-system,system-ui,sans-serif';
+  ctx.textAlign = 'center'; ctx.fillText('Stars →', pad.l + cw / 2, H - 2);
+  ctx.save(); ctx.translate(10, pad.t + ch / 2); ctx.rotate(-Math.PI / 2);
+  ctx.fillText('Days since commit →', 0, 0); ctx.restore();
+
+  // Points
+  SERVERS.forEach((s, i) => {
+    const x = pad.l + (s.stars / maxStars) * cw;
+    const y = pad.t + (daysArr[i] / maxDays) * ch;
+    const r = 4 + (s.installs / maxInst) * 8;
+    const col = s.score >= 80 ? '#22c55e' : s.score >= 60 ? '#f59e0b' : s.score >= 40 ? '#f97316' : '#ef4444';
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = col + 'bb'; ctx.fill();
+    ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.stroke();
+  });
+}
+
+function drawAll() { drawPieChart(); drawScatterChart(); }
+window.addEventListener('load', drawAll);
+window.addEventListener('resize', drawAll);
+</script>
+</body>
+</html>
