@@ -10,7 +10,7 @@ A skill that:
 2. Sources MCP servers from 5 curated directories cross-referenced for quality.
 3. Calculates a visible composite Quality Score (0–100) per server.
 4. Generates a self-contained interactive HTML report with Chart.js visuals, sortable tables, and statistics — saved to your vault.
-5. Runs in two modes on a daily schedule: Digest (Mon–Fri) and Deep-Dive category rotation (Sat–Sun).
+5. Runs in two intended usage modes: Digest and Deep-Dive.
 6. Asks for feedback after each task and appends any corrections to `learnings.md`.
 
 ## The honest mechanism
@@ -55,14 +55,16 @@ The composite score (0–100) shown as a badge on every server:
 
 Badge colours: green (80–100), amber (60–79), orange (40–59), red (0–39).
 
-## Daily schedule modes
+## Usage modes
 
-| Day | Mode | What it does |
-|---|---|---|
-| Mon–Fri | Digest | New/updated servers in past 24h — trends, what just shipped |
-| Sat–Sun | Deep-Dive | Full category analysis — all servers in one domain, ranked and compared |
+| Mode | What it does |
+|---|---|
+| Digest | New or recently updated servers over the recent period — trends, what just shipped |
+| Deep-Dive | Full category analysis — all servers in one domain, ranked and compared |
 
 Category rotation (Deep-Dive): tracks `last_category` in `Research Notes/MCP/MOC.md` frontmatter. Rotate through: Databases → Browser automation → File system → Cloud → Dev tools → Communication → AI & LLM tooling → repeat.
+
+The public package does not ship any scheduler, cron entry, CCR routine, watchdog, or automation wrapper. If an implementer wants automation, they can create two separate external routines so `Digest` and `Deep-Dive` are invoked independently.
 
 ## Report output
 
@@ -106,9 +108,15 @@ A `learnings.md` file is a living document. Run a pruning pass every ~30 rules:
 4. Promote `quality_improvement` rules that have been reliably correct to `critical_error`.
 5. Demote `critical_error` rules causing false positives to `quality_improvement`.
 
-## Scheduling
+## Automation guidance
 
-To run this skill automatically on a daily schedule, use the `/schedule` skill. Point it at this skill with a cron expression (e.g. `0 8 * * *` for 8am daily). The skill detects the day of week at runtime to select Digest vs Deep-Dive mode automatically.
+The public package does not include scheduling infrastructure. If an implementer wants automatic runs, they should create external automation outside the shipped package boundary.
+
+Recommended pattern:
+
+1. Create one external routine that invokes `Digest` mode explicitly.
+2. Create a separate external routine that invokes `Deep-Dive` mode explicitly.
+3. Keep any day-of-week mapping in that external automation layer rather than treating it as part of the released package contract.
 
 ## Version
 

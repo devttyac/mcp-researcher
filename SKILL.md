@@ -1,6 +1,6 @@
 ---
 name: mcp-researcher
-description: Sources, evaluates, and reports on MCP servers from curated directories. Generates interactive HTML reports with charts, sortable tables, quality scores, statistics, and implementation ideas — saved to the vault. Always invoke this skill when the user wants to find, research, discover, or track MCP servers, even if they just ask what MCP servers are available for a topic. Triggers on: "find MCP servers for X", "MCP report", "research MCP servers", "what MCP servers exist for Z", "daily MCP digest", "MCP deep dive on [category]", "what's new in MCP", "source MCP servers for my project", or any scheduled MCP research run.
+description: Sources, evaluates, and reports on MCP servers from curated directories. Generates interactive HTML reports with charts, sortable tables, quality scores, statistics, and implementation ideas — saved to the vault. Always invoke this skill when the user wants to find, research, discover, or track MCP servers, even if they just ask what MCP servers are available for a topic. Triggers on: "find MCP servers for X", "MCP report", "research MCP servers", "what MCP servers exist for Z", "daily MCP digest", "MCP deep dive on [category]", "what's new in MCP", "source MCP servers for my project", or any external routine that invokes Digest or Deep-Dive mode.
 feedback_trigger: after each task
 learnings_path: /Users/aaronchan/Documents/Aaron's Obsidian Notes Vault/.claude/skills/mcp-researcher/learnings.md
 ---
@@ -15,18 +15,18 @@ Claude reads `learnings.md` at the start of every run and applies any stored rul
 
 ## Two Modes
 
-**Digest** (Mon–Fri default): surfaces new and updated servers from the past 24h — trends, momentum, what just shipped.
+**Digest**: surfaces new and updated servers from the recent period — trends, momentum, what just shipped.
 
-**Deep-Dive** (Sat–Sun default): full category analysis — every server in a domain, ranked, scored, and compared.
+**Deep-Dive**: full category analysis — every server in a domain, ranked, scored, and compared.
 
 ## Step 0 — Detect mode and read learnings.md
 
-**Detect execution mode first.** You are running in **scheduled mode** if any of these are true:
-- The session was launched by a CCR trigger (no interactive terminal)
+**Detect execution mode first.** You are running in **unattended mode** if any of these are true:
 - The prompt contains `SCHEDULED_RUN=true` or similar flag
+- An external routine explicitly invokes `Digest` or `Deep-Dive` with no human present
 - There is no human present to respond to questions
 
-In **scheduled mode**: skip Steps 8–10 entirely. Never ask for feedback or wait for a response — there is no one to answer.
+In **unattended mode**: skip Steps 8–10 entirely. Never ask for feedback or wait for a response — there is no one to answer.
 
 In **interactive mode**: all steps apply.
 
@@ -36,17 +36,17 @@ Read `/Users/aaronchan/Documents/Aaron's Obsidian Notes Vault/.claude/skills/mcp
 
 - If the file is missing, create it using the learnings template structure and continue. Log that no rules exist yet.
 - If the file is present but malformed, read what you can, warn once, and continue.
-- Report to the user (interactive) or log (scheduled): "Loaded N rules from learnings.md" and list any `critical_error` rules.
+- Report to the user (interactive) or log (unattended): "Loaded N rules from learnings.md" and list any `critical_error` rules.
 
-If two rules contradict: in interactive mode, surface both and ask. In scheduled mode, apply the more recent rule and log the conflict in the failure report.
+If two rules contradict: in interactive mode, surface both and ask. In unattended mode, apply the more recent rule and log the conflict in the failure report.
 
 ## Step 1 — Determine Mode
 
 - User mentions a specific category → Deep-Dive on that category
 - User says "what's new", "daily", or "digest" → Digest
-- Weekday with no other signal → Digest
-- Weekend with no other signal → Deep-Dive (use next category in rotation — see Step 6)
-- Scheduled run → check day of week to determine mode
+- An external routine explicitly asks for `Digest` → Digest
+- An external routine explicitly asks for `Deep-Dive` → Deep-Dive
+- If there is no clearer signal, default to Digest
 
 ## Step 2 — Source Servers
 
@@ -214,11 +214,11 @@ Store `last_category` in `MOC.md` YAML frontmatter so the next Deep-Dive knows w
 
 In **interactive mode**: open the HTML file: `open "Research Notes/MCP/[filename].html"` and report the save path and Quality Score range.
 
-In **scheduled mode**: skip the `open` call. Log the save path and score range instead.
+In **unattended mode**: skip the `open` call. Log the save path and score range instead.
 
-## Step 6b — Git commit and push (always executes — scheduled mode only)
+## Step 6b — External automation follow-up (optional, unattended mode only)
 
-**This step only applies in scheduled mode.** In interactive mode, skip it — the user's Obsidian Git plugin handles commits.
+**This step is not part of the shipped package contract.** It only applies when an implementer adds an external unattended routine around the skill. In interactive mode, skip it.
 
 Build the commit message using the run status determined in Step 2:
 
@@ -237,14 +237,14 @@ mcp-researcher: 2026-04-26 - Digest 6 servers (partial), avg score 58 | ⚠️ C
 **Status → Action mapping:**
 - `✅ COMPLETED` → `Action: NO`
 - `⚠️ COMPLETED WITH ERRORS` → `Action: YES` (review the sourcing errors)
-- `❌ FAILED` → `Action: NO` (watchdog will alert; no manual action needed beyond investigating)
+- `❌ FAILED` → `Action: NO` (external automation may alert separately; no manual action is implied by this package alone)
 
 **Git operations (with push retry to handle concurrent Obsidian backup commits):**
 
 ```bash
 cd "/Users/aaronchan/Documents/Aaron's Obsidian Notes Vault"
 git add "Research Notes/MCP/"
-git config user.email "mcp-researcher@scheduled"
+git config user.email "mcp-researcher@automation"
 git config user.name "MCP Researcher"
 git commit -m "mcp-researcher: YYYY-MM-DD - ..."
 for i in 1 2 3; do
@@ -253,7 +253,7 @@ for i in 1 2 3; do
 done
 ```
 
-If all three push attempts fail, log the error but do not retry further — the watchdog will catch the missing commit.
+If all three push attempts fail, log the error and stop. Any retry or alerting behavior belongs to the external automation layer, not to the shipped package itself.
 
 ## Step ERR — Failure report (fires when Step 2 returns zero servers)
 
@@ -288,7 +288,7 @@ Zero servers were returned across all sources. The report was not generated.
 
 ## Next steps
 
-Check the source URLs manually. If sources are down, the next scheduled run should recover automatically.
+Check the source URLs manually. If the skill is wrapped in an external routine, the next unattended run may recover automatically once the sources are available again.
 ```
 
 2. **Update the MOC** — append a failure entry:
@@ -300,7 +300,7 @@ Check the source URLs manually. If sources are down, the next scheduled run shou
 
 ## Step 8 — Mandatory feedback request (interactive mode only)
 
-**Skip this step entirely in scheduled mode.**
+**Skip this step entirely in unattended mode.**
 
 This step is not optional in interactive runs — it is how the skill improves over time.
 
