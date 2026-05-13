@@ -2,7 +2,7 @@
 name: mcp-researcher
 description: Sources, evaluates, and reports on MCP servers from curated directories. Generates interactive HTML reports with charts, sortable tables, quality scores, statistics, and implementation ideas — saved to the vault. Always invoke this skill when the user wants to find, research, discover, or track MCP servers, even if they just ask what MCP servers are available for a topic. Triggers on: "find MCP servers for X", "MCP report", "research MCP servers", "what MCP servers exist for Z", "daily MCP digest", "MCP deep dive on [category]", "what's new in MCP", "source MCP servers for my project", or any external routine that invokes Digest or Deep-Dive mode.
 feedback_trigger: after each task
-learnings_path: /Users/aaronchan/Documents/Aaron's Obsidian Notes Vault/.claude/skills/mcp-researcher/learnings.md
+learnings_path: ./learnings.md
 ---
 
 # MCP Researcher
@@ -32,7 +32,7 @@ In **interactive mode**: all steps apply.
 
 ---
 
-Read `/Users/aaronchan/Documents/Aaron's Obsidian Notes Vault/.claude/skills/mcp-researcher/learnings.md` before any other work.
+Read `./learnings.md` before any other work.
 
 - If the file is missing, create it using the learnings template structure and continue. Log that no rules exist yet.
 - If the file is present but malformed, read what you can, warn once, and continue.
@@ -182,37 +182,37 @@ Use the Write tool to save all collected data to `/tmp/mcp-report-data.json`. Th
 ### Step 5b — Run the build script
 
 ```bash
-python3 .claude/skills/mcp-researcher/scripts/build_report.py \
+python3 ./scripts/build_report.py \
   /tmp/mcp-report-data.json \
-  "Research Notes/MCP/YYYY-MM-DD [Mode or Category].html"
+  "./outputs/YYYY-MM-DD [Mode or Category].html"
 ```
 
-- Digest output: `Research Notes/MCP/YYYY-MM-DD Digest.html`
-- Deep-Dive output: `Research Notes/MCP/YYYY-MM-DD [Category] Deep-Dive.html`
+- Digest output: `./outputs/YYYY-MM-DD Digest.html`
+- Deep-Dive output: `./outputs/YYYY-MM-DD [Category] Deep-Dive.html`
 
 If the script errors, check the JSON for missing required fields and fix them. Do not fall back to inline HTML generation.
 
 ## Step 6 — Save to Vault
 
 **File path:**
-- Digest: `Research Notes/MCP/YYYY-MM-DD Digest.html`
-- Deep-Dive: `Research Notes/MCP/YYYY-MM-DD [Category] Deep-Dive.html`
+- Digest: `./outputs/YYYY-MM-DD Digest.html`
+- Deep-Dive: `./outputs/YYYY-MM-DD [Category] Deep-Dive.html`
 
-**MOC update:**
-Append to `Research Notes/MCP/MOC.md`:
+**Index update:**
+Append to `./outputs/MOC.md`:
 ```markdown
 - [YYYY-MM-DD Digest](YYYY-MM-DD Digest.html) — N new servers
 - [YYYY-MM-DD Databases Deep-Dive](YYYY-MM-DD Databases Deep-Dive.html) — N servers, avg score X
 ```
 
-If `Research Notes/MCP/` does not exist, create it and initialise `MOC.md` with a header and the first entry.
+If `./outputs/` does not exist, create it and initialise `MOC.md` with a header and the first entry.
 
 **Rotation tracking:**
 Store `last_category` in `MOC.md` YAML frontmatter so the next Deep-Dive knows which category to use.
 
 ## Step 7 — Open and Confirm
 
-In **interactive mode**: open the HTML file: `open "Research Notes/MCP/[filename].html"` and report the save path and Quality Score range.
+In **interactive mode**: open the HTML file from `./outputs/` and report the save path and Quality Score range.
 
 In **unattended mode**: skip the `open` call. Log the save path and score range instead.
 
@@ -242,8 +242,8 @@ mcp-researcher: 2026-04-26 - Digest 6 servers (partial), avg score 58 | ⚠️ C
 **Git operations (with push retry to handle concurrent Obsidian backup commits):**
 
 ```bash
-cd "/Users/aaronchan/Documents/Aaron's Obsidian Notes Vault"
-git add "Research Notes/MCP/"
+cd "/path/to/your/project-root"
+git add "outputs/"
 git config user.email "mcp-researcher@automation"
 git config user.name "MCP Researcher"
 git commit -m "mcp-researcher: YYYY-MM-DD - ..."
@@ -259,7 +259,7 @@ If all three push attempts fail, log the error and stop. Any retry or alerting b
 
 This path exists to ensure the notification pipeline always fires, even on complete failure. A commit is better than silence.
 
-1. **Write a minimal failure report** to `Research Notes/MCP/YYYY-MM-DD [Mode] FAILED.md`:
+1. **Write a minimal failure report** to `./outputs/YYYY-MM-DD [Mode] FAILED.md`:
 
 ```markdown
 ---

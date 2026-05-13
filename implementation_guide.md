@@ -26,9 +26,9 @@ If Claude skips either step, nothing learns. The discipline lives in the skill f
 
 Before relying on this skill:
 
-- [ ] Confirm `SKILL.md` is in `.claude/skills/mcp-researcher/` and discoverable
-- [ ] Confirm `learnings.md` sits in the same directory
-- [ ] Verify the `learnings_path` field in `SKILL.md` frontmatter is the correct absolute path
+- [ ] Confirm `SKILL.md` is present in the package root and discoverable
+- [ ] Confirm `learnings.md` sits in the package root as the public zero-rule template
+- [ ] Verify the `learnings_path` field in `SKILL.md` frontmatter points to the package-local `./learnings.md`
 - [ ] Run the skill once with a trivial task to confirm it loads, executes, and asks for feedback
 - [ ] Provide a real correction during that first run so the first rule gets written
 - [ ] Run the skill a second time and confirm the first rule gets loaded and applied
@@ -62,7 +62,7 @@ Badge colours: green (80–100), amber (60–79), orange (40–59), red (0–39)
 | Digest | New or recently updated servers over the recent period — trends, what just shipped |
 | Deep-Dive | Full category analysis — all servers in one domain, ranked and compared |
 
-Category rotation (Deep-Dive): tracks `last_category` in `Research Notes/MCP/MOC.md` frontmatter. Rotate through: Databases → Browser automation → File system → Cloud → Dev tools → Communication → AI & LLM tooling → repeat.
+Category rotation (Deep-Dive): tracks `last_category` in `./outputs/MOC.md` frontmatter. Rotate through: Databases → Browser automation → File system → Cloud → Dev tools → Communication → AI & LLM tooling → repeat.
 
 The public package does not ship any scheduler, cron entry, CCR routine, watchdog, or automation wrapper. If an implementer wants automation, they can create two separate external routines so `Digest` and `Deep-Dive` are invoked independently.
 
@@ -75,8 +75,8 @@ All reports are self-contained HTML files:
 - Sortable tables (click column header)
 - Live filter input (searches name and description)
 
-Saved to: `Research Notes/MCP/YYYY-MM-DD [Digest | {Category} Deep-Dive].html`
-MOC updated at: `Research Notes/MCP/MOC.md`
+Saved to: `./outputs/YYYY-MM-DD [Digest | {Category} Deep-Dive].html`
+MOC updated at: `./outputs/MOC.md`
 
 ## Writing good feedback
 
@@ -91,12 +91,12 @@ The feedback loop only works as well as the feedback you provide:
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| Skill ignores learned rules | Step 0 skipped or `learnings_path` wrong | Verify absolute path in `SKILL.md` frontmatter |
+| Skill ignores learned rules | Step 0 skipped or `learnings_path` wrong | Verify `SKILL.md` points to the package-local `./learnings.md` |
 | Rules feel oppressive | Too many `critical_error` rules | Re-categorise to `quality_improvement`; run a pruning pass |
 | Duplicate rules accumulate | No dedup check on append | Step 9 checks for near-duplicates; run manual pruning if needed |
 | Contradicting rules | Feedback shifted over time | Step 0 surfaces the conflict; resolve manually in `learnings.md` |
 | HTML report won't open offline | External CDN reference crept in | Chart.js must be embedded inline — check the generated HTML source |
-| MOC not updated | Vault save step skipped | Re-run Step 6 manually or check that `Research Notes/MCP/` exists |
+| MOC not updated | Output-index step skipped | Re-run Step 6 manually or check that `./outputs/` exists |
 
 ## Maintenance and pruning
 
