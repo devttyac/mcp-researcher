@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -49,3 +50,15 @@ def test_codex_dispatch_surface_is_registered_or_recorded_gap(vault_root: Path):
         return
 
     assert (codex_skill_root / "SKILL.md").is_file()
+
+
+def test_codex_plugin_manifest_describes_root_skill_package(skill_root: Path):
+    plugin_manifest = skill_root / ".codex-plugin" / "plugin.json"
+
+    assert plugin_manifest.is_file()
+
+    manifest = json.loads(plugin_manifest.read_text(encoding="utf-8"))
+
+    assert manifest["name"] == "mcp-researcher"
+    assert manifest["skills"] == "./"
+    assert manifest["interface"]["displayName"] == "MCP Researcher"

@@ -1,0 +1,42 @@
+{
+  "name": "mcp-researcher",
+  "version": "0.1.2",
+  "description": "Sources, evaluates, and reports on MCP servers from curated directories.",
+  "author": {
+    "name": "devttyac",
+    "email": "[TODO: author-email]",
+    "url": "https://github.com/devttyac"
+  },
+  "homepage": "https://github.com/devttyac/mcp-researcher",
+  "repository": "https://github.com/devttyac/mcp-researcher",
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "research",
+    "discovery",
+    "reporting",
+    "skill"
+  ],
+  "skills": "./",
+  "interface": {
+    "displayName": "MCP Researcher",
+    "shortDescription": "Research MCP servers and generate ranked reports",
+    "longDescription": "Research MCP servers from curated directories, score them, and generate interactive Digest or Deep-Dive HTML reports from the packaged skill runtime.",
+    "developerName": "devttyac",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/devttyac/mcp-researcher",
+    "privacyPolicyURL": "[TODO: privacy-policy-url]",
+    "termsOfServiceURL": "[TODO: terms-of-service-url]",
+    "defaultPrompt": [
+      "Find MCP servers for browser testing and compare them",
+      "Create a daily MCP digest for new database servers",
+      "Do a deep dive on infrastructure MCP servers"
+    ],
+    "brandColor": "#0F766E",
+    "screenshots": []
+  }
+}
