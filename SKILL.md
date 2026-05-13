@@ -9,6 +9,17 @@ learnings_path: ./learnings.md
 
 Generates interactive HTML research reports on MCP servers, saved to the vault. Applies learned rules from `learnings.md` on every run and captures feedback at the end so future reports improve.
 
+## Path resolution rule
+
+Resolve all relative file paths from the directory containing this `SKILL.md`.
+
+- `./learnings.md` means the sibling file beside this `SKILL.md`
+- `references/...` means files under this skill's `references/` directory
+- `scripts/...` means files under this skill's `scripts/` directory
+- `./outputs/...` means paths under this skill package's local `outputs/` directory
+
+Do not resolve these paths from the session working directory.
+
 ## How learning works
 
 Claude reads `learnings.md` at the start of every run and applies any stored rules. At the end, it asks one feedback question. If you give a correction, it writes a rule — that rule fires on every future run. Nothing updates silently between sessions; the discipline lives in these two explicit steps.

@@ -1,0 +1,54 @@
+{
+  "mode": "digest",
+  "date": "2026-05-13",
+  "day_of_week": "Wednesday",
+  "sourcing_note": "awesome-mcp-servers · Smithery",
+  "servers": [
+    {
+      "name": "browser-ops-mcp",
+      "url": "https://github.com/example/browser-ops-mcp",
+      "cat": "Browser Automation · Python · MIT",
+      "score": 72,
+      "stars": 1240,
+      "commit": "2026-05-10",
+      "lang": "Python",
+      "src": "awesome-mcp",
+      "desc": "Browser automation server for reproducible workflows.",
+      "abandoned": false
+    },
+    {
+      "name": "infra-watch-mcp",
+      "url": "https://github.com/example/infra-watch-mcp",
+      "cat": "Infrastructure · TypeScript · Apache-2.0",
+      "score": 64,
+      "stars": 870,
+      "commit": "2026-05-07",
+      "lang": "TypeScript",
+      "src": "smithery",
+      "desc": "Infrastructure health and incident context server.",
+      "abandoned": false
+    }
+  ],
+  "top_chips": [
+    { "icon": "⭐", "text": "1.2k stars" },
+    { "icon": "📅", "text": "May 10, 2026" },
+    { "icon": "📦", "text": "500 installs" }
+  ],
+  "stats": {
+    "avg_score": 68.0,
+    "abandonment_pct": 0,
+    "sources_count": 2,
+    "gte40_count": 2,
+    "peak_stars": 1240
+  },
+  "time_series": [
+    { "label": "May 12", "count": 1 },
+    { "label": "May 13", "count": 2 }
+  ],
+  "ideas": [
+    {
+      "title": "Pair browser automation with ops runbooks",
+      "body": "Use browser-ops-mcp to validate UI-heavy admin workflows alongside ops documentation."
+    }
+  ]
+}

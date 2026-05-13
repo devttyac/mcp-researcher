@@ -1,0 +1,79 @@
+{
+  "mode": "deep-dive",
+  "date": "2026-05-13",
+  "category": "Cloud & infrastructure",
+  "sourcing_note": "awesome-mcp-servers · Smithery",
+  "exec_summary": "Infrastructure-oriented MCP servers show a healthy spread across cloud observability and deployment workflows.",
+  "servers": [
+    {
+      "name": "cloud-ops-mcp",
+      "url": "https://github.com/example/cloud-ops-mcp",
+      "subcat": "AWS",
+      "score": 84,
+      "stars": 2140,
+      "commit": "2026-05-11",
+      "installs": 650,
+      "complexity": "Medium",
+      "lang": "Python",
+      "src": 3,
+      "desc": "Operational workflows for cloud incident response.",
+      "abandoned": false
+    },
+    {
+      "name": "deploy-lens-mcp",
+      "url": "https://github.com/example/deploy-lens-mcp",
+      "subcat": "Kubernetes",
+      "score": 71,
+      "stars": 980,
+      "commit": "2026-05-08",
+      "installs": 420,
+      "complexity": "Medium",
+      "lang": "TypeScript",
+      "src": 2,
+      "desc": "Release and deployment visibility for platform teams.",
+      "abandoned": false
+    }
+  ],
+  "stats": {
+    "avg_score": 77.5,
+    "abandonment_pct": 0,
+    "sources_count": 2,
+    "median_stars": 1560,
+    "median_days": 3
+  },
+  "top_cards": [
+    {
+      "score": 84,
+      "name": "cloud-ops-mcp",
+      "url": "https://github.com/example/cloud-ops-mcp",
+      "meta": "Python · MIT · 2.1k stars",
+      "desc": "Operational workflows for cloud incident response.",
+      "stats": {
+        "stars": 2140,
+        "forks": 121,
+        "commit": "2026-05-11",
+        "installs": 650,
+        "contributors": 18
+      },
+      "tools": ["incident_lookup", "service_status", "rollback_plan"],
+      "examples": [
+        "Map alert context into a service-level incident timeline.",
+        "Generate rollback guidance before a production deployment.",
+        "Summarise health signals across core infrastructure dependencies."
+      ],
+      "pros": "Strong operational focus and broad infrastructure coverage.",
+      "cons": "Still requires operator judgment around final remediation steps."
+    }
+  ],
+  "subcats": [
+    { "label": "AWS", "count": 1 },
+    { "label": "Kubernetes", "count": 1 }
+  ],
+  "impl_map": [
+    {
+      "title": "Incident response bundle",
+      "desc": "Combine infrastructure context, deployment history, and rollback suggestions for incident triage."
+    }
+  ],
+  "recommendation": "Start with cloud-ops-mcp for operational triage coverage, then add deploy-lens-mcp where release visibility is the bigger need."
+}

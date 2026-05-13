@@ -42,6 +42,17 @@ If the second run doesn't reference the rule, something is wrong — troubleshoo
 
 The skill's first action is to read `learnings.md` and report the rule count. If the file is missing, it creates one automatically.
 
+## Path model
+
+This public package resolves its relative paths from the directory containing `SKILL.md`.
+
+- `./learnings.md` is the package-local learnings template
+- `references/` is the package-local template and sourcing directory
+- `scripts/build_report.py` is the package-local report builder
+- `./outputs/` is the package-local runtime output directory
+
+The package should not depend on the caller's current working directory to find these files.
+
 ## Quality Score formula
 
 The composite score (0–100) shown as a badge on every server:
