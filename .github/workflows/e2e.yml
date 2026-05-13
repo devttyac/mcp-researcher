@@ -1,4 +1,4 @@
-name: E2E
+name: Repo E2E Tests
 
 on:
   push:
