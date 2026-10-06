@@ -1,6 +1,14 @@
 ---
 name: mcp-researcher
-description: Sources, evaluates, and reports on MCP servers from curated directories. Generates interactive HTML reports with charts, sortable tables, quality scores, statistics, and implementation ideas — saved to the vault. Always invoke this skill when the user wants to find, research, discover, or track MCP servers, even if they just ask what MCP servers are available for a topic. Triggers on: "find MCP servers for X", "MCP report", "research MCP servers", "what MCP servers exist for Z", "daily MCP digest", "MCP deep dive on [category]", "what's new in MCP", "source MCP servers for my project", or any external routine that invokes Digest or Deep-Dive mode.
+description: >-
+  Sources, evaluates, and reports on MCP servers from curated directories. Generates
+  interactive HTML reports with charts, sortable tables, quality scores, statistics, and
+  implementation ideas — saved to the vault. Always invoke this skill when the user wants to
+  find, research, discover, or track MCP servers, even if they just ask what MCP servers are
+  available for a topic. Triggers on: "find MCP servers for X", "MCP report", "research MCP
+  servers", "what MCP servers exist for Z", "daily MCP digest", "MCP deep dive on [category]",
+  "what's new in MCP", "source MCP servers for my project", or any external routine that
+  invokes Digest or Deep-Dive mode.
 feedback_trigger: after each task
 learnings_path: ./learnings.md
 ---
